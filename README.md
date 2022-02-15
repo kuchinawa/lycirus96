@@ -1,6 +1,6 @@
 - 👋 Olá, me chamo Davi (Kuchi).
 - 👀 Estou tentando entender como funciona o github.
-- 🌱 Sou estudante de Ciência da Compatação.
+- 🌱 Sou estudante de Ciência da Computação.
 
 <!---
 lycirus96/lycirus96 is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
