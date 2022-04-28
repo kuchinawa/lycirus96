@@ -1,4 +1,4 @@
-- 👋 Olá, me chamo Davi (Kuchi).
+- 👋 Olá, me chamo Davi (Kuchinawa).
 - 👀 Estou tentando entender como funciona o github.
 - 🌱 Sou estudante de Ciência da Computação.
 
