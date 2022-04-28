@@ -1,0 +1,281 @@
+#include <iostream>
+
+using namespace std;
+
+
+// constantes
+static const int TAM = 9; // tamanho do campo
+
+// enums
+enum Colunas {A=1, B, C, D, F, G, H, I, J};
+enum Navio {nenhum = 0, bote, rebocador};
+enum Status {agua = 1, erro, acerto};
+
+// funçoes
+	void limparTela(){
+		system("clear||cls");
+	}
+	
+	void limparBuffer(){
+		fflush(stdin);
+	}
+
+struct indice{
+	Navio navio;
+	Status status;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Classe campo
+class Campo{
+	private:
+		indice campo[TAM][TAM];
+		//char bote = 'B'; // 1x1
+		//char rebocador_horizontal[2] = {'R', 'R'}; //1x2
+		//char rebocador_vertical[2][1] = {{'R'},{'R'}}; // 2x1  
+		int bote_qnt_linhas = 1;
+		int bote_qnt_colunas = 1;
+		int rebocador_horizontal_qnt_linhas = 1;
+		int rebocador_horizontal_qnt_colunas = 1;
+		int rebocador_vertical_qnt_linhas = 2;
+		int rebocador_vertical_qnt_colunas = 1;
+	public:
+		Campo();
+		~Campo();
+		void resetCampo();
+		void getCampo();
+		void setStatus(int linha, int coluna, Status status); 
+		void getStatus(int linha, int coluna);
+		bool testarTiro(int linha, int coluna);
+		void setTiro();
+		void setNavio(int linha, int coluna, Navio navio);
+		void getNavio(int linha, int coluna);	
+		bool verificarPosicao(int linha, int coluna, int linhaFim, int colunaFim);
+		void setBote();
+		void setRebocador_horizontal();
+		void setRebocador_vertical();
+		
+};
+	//construtor
+	Campo::Campo(){
+		resetCampo();
+	}
+	//destrutor
+	Campo::~Campo(){
+		
+	}
+	
+	// Metodos
+	void Campo::resetCampo (){
+		for(int linha = 1; linha <= TAM; linha++){
+			for(int coluna = 1; coluna <= TAM; coluna++){
+				campo[linha][coluna].status = agua;
+				campo[linha][coluna].navio = nenhum;
+				}
+			}
+	}
+	
+	void Campo::getCampo(){
+		cout << "\t\t\t\t\t\t  A B C D F G H I J \n";
+			for(int linha = 1; linha <= TAM; linha++){
+			cout << "\t\t\t\t\t\t" << linha << " ";
+					for(int coluna = 1; coluna <= TAM; coluna++){
+						getStatus(linha, coluna);
+					}
+			cout << endl;
+			}
+	}
+	
+	void Campo::setStatus(int linha, int coluna, Status status){
+		campo[linha][coluna].status = status;
+	}
+	
+	void Campo::getStatus(int linha, int coluna){
+		switch(campo[linha][coluna].status){
+			case 1:
+				cout << "~ ";
+				break;
+			case 2:
+				cout << "X ";
+				break;
+			case 3:
+				cout << "# ";
+				break;
+			default:
+				break;
+		}
+	}
+	
+	bool Campo::testarTiro(int linha, int coluna){
+		if((linha<1) || (linha>9) || (coluna<1) || (coluna>9)){
+			cout << "Lugar invalido, digite novamente.\n";
+			return false;
+		} else {
+			if(campo[linha][coluna].status!=agua){
+				cout << "Lugar invalido, digite novamente.\n";
+				return false;
+			} else {
+				return true;
+			}
+		}
+	}
+	
+	void Campo::setTiro(){
+		int linha, coluna;
+		bool teste;
+		do{
+		cout << "Digite a coluna: ";
+		cin >> coluna;
+		cout << "\nDigite a linha: ";
+		cin >> linha;
+		
+		teste = testarTiro(linha, coluna);	
+			if(teste == true){
+				if (campo[linha][coluna].navio == 0){
+					campo[linha][coluna].status = erro;
+					cout << "\n\nErrouuuu!!!\n\n";
+				} else {
+					campo[linha][coluna].status = acerto;
+					cout << "\n\nVoce acertou um ";
+					getNavio(linha, coluna);
+					cout << "!!!\n\n";	
+				}
+			}
+		}while (teste!=true);
+	}
+	
+	void Campo::setNavio(int linha, int coluna, Navio navio){
+		campo[linha][coluna].navio = navio;
+	} 
+	
+	void Campo::getNavio(int linha, int coluna){
+			switch(campo[linha][coluna].navio){
+			case 0:
+				cout << "Nenhum";
+				break;
+			case 1:
+				cout << "Bote";
+				break;
+			case 2:
+				cout << "Rebocador";
+				break;
+			default:
+				cout << "\n\nParabens, bugou tudo!\n\n";
+				break;
+		}	
+	}
+	
+	bool Campo::verificarPosicao(int linha, int coluna, int linhaFim, int colunaFim){
+		if((linha<1) || (linha>9) || (coluna<1) || (coluna>9) || (linhaFim<1) || (linhaFim>9) || (colunaFim<1) || (colunaFim>9)){
+			cout << "Lugar invalido, digite novamente.\n";
+			return false;
+		} else {
+			return true;
+		}
+	}
+	
+	void Campo::setBote(){
+		int linha, coluna, linhaFim, colunaFim;
+		bool teste;
+		
+		do{
+		cout << "Digite a coluna: ";
+		cin >> coluna;
+		limparBuffer();
+		cout << "\nDigite a linha: ";
+		cin >> linha;
+		limparBuffer();
+		linhaFim = linha;
+		colunaFim = coluna;
+		
+		teste = verificarPosicao(linha, coluna, linhaFim, colunaFim);	
+			if(teste == true){
+				for(int linha = 1; linha <= bote_qnt_linhas; linha++){
+					for(int coluna = 1; coluna <= bote_qnt_colunas; coluna++){
+						campo[linha][coluna].navio == bote;
+					}
+				}
+			}
+		}while (teste=!true);	
+	}
+
+	void Campo::setRebocador_horizontal(){
+		int linha, coluna, linhaFim, colunaFim;
+		bool teste;
+		
+		do{
+		cout << "Digite a coluna: ";
+		cin >> coluna;
+		limparBuffer();
+		cout << "\nDigite a linha: ";
+		cin >> linha;
+		limparBuffer();
+		linhaFim = linha;
+		colunaFim = coluna;
+		
+		teste = verificarPosicao(linha, coluna, linhaFim, colunaFim);	
+			if(teste == true){
+				for(int linha = 1; linha <= rebocador_horizontal_qnt_linhas; linha++){
+					for(int coluna = 1; coluna <= rebocador_horizontal_qnt_colunas; coluna++){
+						campo[linha][coluna].navio == rebocador;
+					}
+				}
+			}
+		}while (teste=!true);	
+	}
+	
+	void Campo::setRebocador_vertical(){
+		int linha, coluna, linhaFim, colunaFim;
+		bool teste;
+		
+		do{
+		cout << "Digite a coluna: ";
+		cin >> coluna;
+		limparBuffer();
+		cout << "\nDigite a linha: ";
+		cin >> linha;
+		limparBuffer();
+		linhaFim = linha;
+		colunaFim = coluna;
+		
+		teste = verificarPosicao(linha, coluna, linhaFim, colunaFim);	
+			if(teste == true){
+				for(int linha = 1; linha <= rebocador_vertical_qnt_linhas; linha++){
+					for(int coluna = 1; coluna <= rebocador_vertical_qnt_colunas; coluna++){
+						campo[linha][coluna].navio == rebocador;
+					}
+				}
+			}
+		}while (teste=!true);
+	}	
+	
+	
+	
+	// fim dos metodos
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	// funções
+
+
+
+	// main
+int main(){
+	int cont;
+	Campo jogador;
+	jogador.getCampo();
+	jogador.setNavio(2, B, bote);
+	do{
+	
+	jogador.setTiro();
+	limparTela();
+	jogador.getCampo();
+	cont++;
+	}while (cont<50);
+	
+	
+	
+	system("pause");
+	return 0;
+}
