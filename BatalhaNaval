@@ -8,17 +8,17 @@ static const int TAM = 9; // tamanho do campo
 
 // enums
 enum Colunas {A=1, B, C, D, F, G, H, I, J};
-enum Navio {nenhum = 0, bote, rebocador};
-enum Status {agua = 1, erro, acerto};
+enum Navio {nenhum = 0, bote, rebocador_horizontal, rebocador_vertical};
+enum Status {agua = 1, erro = 2, acerto = 3};
 
 // funçoes
-	void limparTela(){
-		system("clear||cls");
-	}
+void limparTela(){
+	system("clear||cls");
+}
 	
-	void limparBuffer(){
-		fflush(stdin);
-	}
+void limparBuffer(){
+	fflush(stdin);
+}
 
 struct indice{
 	Navio navio;
@@ -30,7 +30,7 @@ struct indice{
 // Classe campo
 class Campo{
 	private:
-		indice campo[TAM][TAM];
+		indice campo[TAM+1][TAM+1];
 		//char bote = 'B'; // 1x1
 		//char rebocador_horizontal[2] = {'R', 'R'}; //1x2
 		//char rebocador_vertical[2][1] = {{'R'},{'R'}}; // 2x1  
@@ -45,13 +45,16 @@ class Campo{
 		~Campo();
 		void resetCampo();
 		void getCampo();
+		void getCampoRevelado();
 		void setStatus(int linha, int coluna, Status status); 
+		Status getStatusValor(int linha, int coluna);
 		void getStatus(int linha, int coluna);
 		bool testarTiro(int linha, int coluna);
 		void setTiro();
 		void setNavio(int linha, int coluna, Navio navio);
+		Navio getNavioValor(int linha, int coluna);
 		void getNavio(int linha, int coluna);	
-		bool verificarPosicao(int linha, int coluna, int linhaFim, int colunaFim);
+		bool verificarPosicao(Navio navio, int linha, int coluna, int linhaFim, int colunaFim);
 		void setBote();
 		void setRebocador_horizontal();
 		void setRebocador_vertical();
@@ -87,28 +90,84 @@ class Campo{
 			}
 	}
 	
+	void Campo::getCampoRevelado(){
+		cout << "\t\t\t\t\t\t  A B C D F G H I J \n";
+			for(int linha = 1; linha <= TAM; linha++){
+			cout << "\t\t\t\t\t\t" << linha << " ";
+					for(int coluna = 1; coluna <= TAM; coluna++){
+						switch(getNavioValor(linha, coluna)){
+							case 0:
+								switch(getStatusValor(linha, coluna)){
+									case 1:
+										cout << "~ ";
+										break;
+									case 2:
+										cout << "X ";
+										break;
+									case 3:
+										cout << "# ";
+										break;
+									default:
+										cout << "^ ";
+										break;
+								}
+								break;
+							case 1:
+								if(getStatusValor(linha, coluna) == 3 ){
+									cout << "# ";	
+								} else {
+									cout << "B ";
+								}
+								break;
+							case 2:
+								if(getStatusValor(linha, coluna) == 3 ){
+									cout << "# ";	
+								} else {
+									cout << "R ";
+								}
+								break;
+							case 3:
+								if(getStatusValor(linha, coluna) == 3 ){
+									cout << "# ";	
+								} else {
+									cout << "R ";
+								}
+							default:
+								cout << "> ";
+								break;			
+						}
+					}
+			cout << endl;
+			}	
+	}
+	
 	void Campo::setStatus(int linha, int coluna, Status status){
 		campo[linha][coluna].status = status;
 	}
 	
+	Status Campo::getStatusValor(int linha, int coluna){
+		return campo[linha][coluna].status;
+	}
+	
 	void Campo::getStatus(int linha, int coluna){
-		switch(campo[linha][coluna].status){
-			case 1:
+		switch(getStatusValor(linha, coluna)){
+			case 1:	// agua
 				cout << "~ ";
 				break;
-			case 2:
+			case 2:	// errou o tiro
 				cout << "X ";
 				break;
-			case 3:
+			case 3:	// acertou o tiro
 				cout << "# ";
 				break;
 			default:
+				cout << "^ ";
 				break;
 		}
 	}
 	
 	bool Campo::testarTiro(int linha, int coluna){
-		if((linha<1) || (linha>9) || (coluna<1) || (coluna>9)){
+		if((linha<1) || (linha>TAM) || (coluna<1) || (coluna>TAM)){
 			cout << "Lugar invalido, digite novamente.\n";
 			return false;
 		} else {
@@ -122,21 +181,20 @@ class Campo{
 	}
 	
 	void Campo::setTiro(){
-		int linha, coluna;
+		int linha = 0, coluna = 0;
 		bool teste;
 		do{
-		cout << "Digite a coluna: ";
-		cin >> coluna;
 		cout << "\nDigite a linha: ";
 		cin >> linha;
-		
+		cout << "Digite a coluna: ";
+		cin >> coluna;		
 		teste = testarTiro(linha, coluna);	
 			if(teste == true){
-				if (campo[linha][coluna].navio == 0){
-					campo[linha][coluna].status = erro;
+				if (getNavioValor(linha, coluna) == nenhum){
+					setStatus(linha, coluna, erro);
 					cout << "\n\nErrouuuu!!!\n\n";
 				} else {
-					campo[linha][coluna].status = acerto;
+					setStatus(linha, coluna, acerto);
 					cout << "\n\nVoce acertou um ";
 					getNavio(linha, coluna);
 					cout << "!!!\n\n";	
@@ -149,6 +207,10 @@ class Campo{
 		campo[linha][coluna].navio = navio;
 	} 
 	
+	Navio Campo::getNavioValor(int linha, int coluna){	
+		return campo[linha][coluna].navio;
+	}
+
 	void Campo::getNavio(int linha, int coluna){
 			switch(campo[linha][coluna].navio){
 			case 0:
@@ -160,94 +222,127 @@ class Campo{
 			case 2:
 				cout << "Rebocador";
 				break;
+			case 3:
+				cout << "Rebocador";
+				break;
 			default:
-				cout << "\n\nParabens, bugou tudo!\n\n";
+				cout << "\n\nBug metodo getNavio\n\n";
 				break;
 		}	
 	}
 	
-	bool Campo::verificarPosicao(int linha, int coluna, int linhaFim, int colunaFim){
-		if((linha<1) || (linha>9) || (coluna<1) || (coluna>9) || (linhaFim<1) || (linhaFim>9) || (colunaFim<1) || (colunaFim>9)){
+	bool Campo::verificarPosicao(Navio navio, int linha, int coluna, int linhaFim, int colunaFim){
+		if((linha<1) || (linha>TAM) || (coluna<1) || (coluna>TAM) || (linhaFim<1) || (linhaFim>TAM) || (colunaFim<1) || (colunaFim>TAM)){
 			cout << "Lugar invalido, digite novamente.\n";
 			return false;
 		} else {
-			return true;
+			switch(navio){
+				case 1: // bote (1x1)
+					if(getNavioValor(linha, coluna) != nenhum){
+						cout << "Lugar invalido, digite novamente.\n";
+						return false;
+					} else {
+						return true;
+					}
+					break;
+				case 2:	// rebocador_horizontal (1x2)
+					if((getNavioValor(linha, coluna) != nenhum) || (getNavioValor(linha, coluna+1) != nenhum)){
+						cout << "Lugar invalido, digite novamente.\n";
+						return false;
+					} else {
+						return true;
+					}
+					break;
+				case 3:	// rebocador_vertical (2x1)
+					if((getNavioValor(linha, coluna) != nenhum) || (getNavioValor(linha+1, coluna) != nenhum)){
+						cout << "Lugar invalido, digite novamente.\n";
+						return false;
+					} else {
+						return true;
+					}
+					break;
+				default:
+					break;	
+					
+			}
 		}
 	}
 	
 	void Campo::setBote(){
-		int linha, coluna, linhaFim, colunaFim;
+		int linha = 0, coluna = 0, linhaFim = 0, colunaFim = 0;
 		bool teste;
 		
 		do{
-		cout << "Digite a coluna: ";
-		cin >> coluna;
-		limparBuffer();
 		cout << "\nDigite a linha: ";
 		cin >> linha;
+		limparBuffer();
+		cout << "Digite a coluna: ";
+		cin >> coluna;
 		limparBuffer();
 		linhaFim = linha;
 		colunaFim = coluna;
 		
-		teste = verificarPosicao(linha, coluna, linhaFim, colunaFim);	
+		teste = verificarPosicao(bote, linha, coluna, linhaFim, colunaFim);	
 			if(teste == true){
-				for(int linha = 1; linha <= bote_qnt_linhas; linha++){
-					for(int coluna = 1; coluna <= bote_qnt_colunas; coluna++){
-						campo[linha][coluna].navio == bote;
-					}
-				}
+				//for(linha = linha; linha <= bote_qnt_linhas; linha++){
+				//	for(coluna = coluna; coluna <= bote_qnt_colunas; coluna++){
+						campo[linha][coluna].navio = bote;
+				//	}
+				//}
 			}
-		}while (teste=!true);	
+		}while (teste!=true);	
 	}
 
 	void Campo::setRebocador_horizontal(){
-		int linha, coluna, linhaFim, colunaFim;
+		int linha = 0, coluna = 0, linhaFim = 0, colunaFim = 0;
 		bool teste;
 		
 		do{
-		cout << "Digite a coluna: ";
-		cin >> coluna;
-		limparBuffer();
 		cout << "\nDigite a linha: ";
 		cin >> linha;
 		limparBuffer();
+		cout << "Digite a coluna: ";
+		cin >> coluna;
+		limparBuffer();
 		linhaFim = linha;
-		colunaFim = coluna;
+		colunaFim = coluna+1;
 		
-		teste = verificarPosicao(linha, coluna, linhaFim, colunaFim);	
+		teste = verificarPosicao(rebocador_horizontal, linha, coluna, linhaFim, colunaFim);	
 			if(teste == true){
-				for(int linha = 1; linha <= rebocador_horizontal_qnt_linhas; linha++){
-					for(int coluna = 1; coluna <= rebocador_horizontal_qnt_colunas; coluna++){
-						campo[linha][coluna].navio == rebocador;
-					}
-				}
+				//for(linha = linha; linha <= rebocador_horizontal_qnt_linhas; linha++){
+				//	for(coluna = coluna; coluna <= rebocador_horizontal_qnt_colunas; coluna++){
+						campo[linha][coluna].navio = rebocador_horizontal;
+						campo[linha][coluna+1].navio = rebocador_horizontal;   // teste
+				//	}
+				//}
 			}
-		}while (teste=!true);	
+		}while (teste!=true);	
 	}
 	
 	void Campo::setRebocador_vertical(){
-		int linha, coluna, linhaFim, colunaFim;
+		int linha = 0, coluna = 0, linhaFim = 0, colunaFim = 0;
 		bool teste;
 		
 		do{
-		cout << "Digite a coluna: ";
-		cin >> coluna;
-		limparBuffer();
 		cout << "\nDigite a linha: ";
 		cin >> linha;
 		limparBuffer();
-		linhaFim = linha;
+		cout << "Digite a coluna: ";
+		cin >> coluna;
+		limparBuffer();
+		linhaFim = linha+1;
 		colunaFim = coluna;
 		
-		teste = verificarPosicao(linha, coluna, linhaFim, colunaFim);	
+		teste = verificarPosicao(rebocador_vertical, linha, coluna, linhaFim, colunaFim);	
 			if(teste == true){
-				for(int linha = 1; linha <= rebocador_vertical_qnt_linhas; linha++){
-					for(int coluna = 1; coluna <= rebocador_vertical_qnt_colunas; coluna++){
-						campo[linha][coluna].navio == rebocador;
-					}
-				}
+				//for(linha = linha; linha <= rebocador_vertical_qnt_linhas; linha++){
+				//	for(coluna = coluna; coluna <= rebocador_vertical_qnt_colunas; coluna++){
+						campo[linha][coluna].navio = rebocador_vertical;
+						campo[linha+1][coluna].navio = rebocador_vertical;  // teste
+				//	}
+				//}
 			}
-		}while (teste=!true);
+		}while (teste!=true);
 	}	
 	
 	
@@ -256,23 +351,65 @@ class Campo{
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	// funções
-
-
 
 	// main
 int main(){
-	int cont;
+	int cont = 0;
 	Campo jogador;
 	jogador.getCampo();
-	jogador.setNavio(2, B, bote);
-	do{
 	
-	jogador.setTiro();
+	cout << "Coloque um bote(1x1): \n\n";
+	jogador.setBote();
 	limparTela();
-	jogador.getCampo();
-	cont++;
-	}while (cont<50);
+	jogador.getCampoRevelado();	
+	
+	cout << "Coloque um bote(1x1): \n\n";	
+	jogador.setBote();
+	limparTela();
+	jogador.getCampoRevelado();		
+	
+	cout << "Coloque um bote(1x1): \n\n";
+	jogador.setBote();
+	limparTela();
+	jogador.getCampoRevelado();	
+	
+	cout << "Coloque um rebocador horizontal(1x2): \n\n";
+	jogador.setRebocador_horizontal();
+	limparTela();
+	jogador.getCampoRevelado();	
+	
+	cout << "Coloque um rebocador horizontal(1x2): \n\n";
+	jogador.setRebocador_horizontal();
+	limparTela();
+	jogador.getCampoRevelado();
+	
+	cout << "Coloque um rebocador vertical(2x1): \n\n";
+	jogador.setRebocador_vertical();
+	limparTela();
+	jogador.getCampoRevelado();	
+	cout << endl;
+	system("pause");
+	limparTela();
+	
+	cout << "\n\nVoce tem 15 tentativas pra acertar os navios. \n";
+	system("pause");
+	limparTela();
+	
+	do{
+		jogador.getCampo();
+		jogador.setTiro();
+		cout << endl;
+		system("pause");
+		limparTela();
+	
+		limparTela();
+		if(cont == 7){
+			//jogador.resetCampo();
+		}
+		cont++;
+	}while (cont<15);
+	
+	jogador.getCampoRevelado();
 	
 	
 	
